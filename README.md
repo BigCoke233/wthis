@@ -1,4 +1,4 @@
-> [!warning]
+> [!WARNING]
 > This project is still a work-in-progress. There may be bugs and missing features.
 
 ![](demo.gif)
