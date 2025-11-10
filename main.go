@@ -12,7 +12,7 @@ func main() {
     _, brewInstallationErr := exec.LookPath("brew")
     if brewInstallationErr != nil {
         color.Red("🍺 Homebrew not installed.")
-        fmt.Println("This tool is for looking up formulaermation about packages installed with Homebrew. If you don't have Homebrew, it's no use.")
+        fmt.Println("This tool is for looking up formulae/cask information about packages installed with Homebrew. If you don't have Homebrew, it's no use.")
         os.Exit(1)
     }
 
