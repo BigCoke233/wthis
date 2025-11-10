@@ -20,7 +20,7 @@ func main() {
 	// handle arguments
 	var printUsage = func() {
 		color.New(color.FgBlue).Print("Usage: ")
-        fmt.Print("wtfis <package>\n")
+        fmt.Print("wthis <package>\n")
 	}
     if len(args) < 2 {
         printUsage()
