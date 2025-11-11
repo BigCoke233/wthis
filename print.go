@@ -102,21 +102,14 @@ func printRecentActivity(installedVersion string, atime time.Time) {
 	}
 
 	// print usage info
-	var format string
-	var humanReadableDuration string
-
-	humanReadableDuration = durafmt.ParseShort(time.Since(atime)).String()
-	format = func() string {
-		if atime.Nanosecond() == 0 {
-			return "► You never used this."
-		} else if time.Since(atime) < 24*7*time.Hour {
-			return "► You used this in %s."
-		} else {
-			return "► You haven't used this for %s."
-		}
-	}()
-
-	color.Blue(format, humanReadableDuration)
+	humanReadableDuration := durafmt.ParseShort(time.Since(atime)).String()
+	if atime.Nanosecond() == 0 {
+		color.Blue("► You never used this.")
+	} else if time.Since(atime) < 24*7*time.Hour {
+		color.Blue("► You used this in %s.", humanReadableDuration)
+	} else {
+		color.Blue("► You haven't used this for %s.", humanReadableDuration)
+	}
 }
 
 // === #Section: Metadata# === //

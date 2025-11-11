@@ -58,13 +58,15 @@ func UnifyInfo(formula *FormulaInfo, cask *CaskInfo, pkgName string) (*statistic
 	// === general === //
 
 	// get system atime
+	var atime time.Time
 	binPath := filepath.Join("/opt/homebrew/bin", pkgName)
 	info, err := os.Stat(binPath)
 	if err != nil {
-		return nil // skip if no binary is found
+		atime = time.Time{} // skip if no binary is found
+	} else {
+		atime = time.Unix(info.Sys().(*syscall.Stat_t).Atimespec.Unix())
 	}
-	atime := info.Sys().(*syscall.Stat_t).Atimespec
-	statObject.LastAccessTime = time.Unix(atime.Unix())
+	statObject.LastAccessTime = atime
 
 	return &statObject
 }
