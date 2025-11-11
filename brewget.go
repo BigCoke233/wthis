@@ -37,7 +37,7 @@ type CaskInfo struct {
 
 // GetInfo fetches package info for both formulae and casks.
 // It returns one of the two structs depending on the package type.
-func GetInfo(pkg string) (*FormulaInfo, *CaskInfo) {
+func GetBrewInfo(pkg string) (*FormulaInfo, *CaskInfo) {
 	out, err := exec.Command("brew", "info", "--json=v2", pkg).Output()
 	if err != nil {
 		color.Red("❌ Error fetching info. Please check for typo.")
@@ -64,19 +64,20 @@ func GetInfo(pkg string) (*FormulaInfo, *CaskInfo) {
 	return nil, nil // not found
 }
 
-func GetReverseDependencies(pkg string) ([]string, error) {
+func GetBrewUses(pkg string) ([]string) {
 	cmd := exec.Command("brew", "uses", "--installed", pkg)
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	if err := cmd.Run(); err != nil {
-		return nil, err
+		color.Red("❌ Error fetching reverse dependencies.")
+		return []string{}
 	}
 
 	// Each line is a formula name
 	lines := strings.Split(strings.TrimSpace(out.String()), "\n")
 	if len(lines) == 1 && lines[0] == "" {
-		return []string{}, nil
+		return []string{}
 	}
 
-	return lines, nil
+	return lines
 }

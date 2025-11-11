@@ -4,64 +4,62 @@ import (
 	"fmt"
 	"github.com/fatih/color"
 	"strings"
-	"os"
-	"path/filepath"
-	"syscall"
 	"time"
 	"github.com/hako/durafmt"
 )
 
 // === Print Entry Point === //
 
-func PrintInfo(formula *FormulaInfo, cask *CaskInfo, pkgName string) {
-	if formula == nil && cask == nil {
+func PrintInfo(data *statistics) {
+	if data == nil {
 		fmt.Println("Package not found.")
 		return
 	}
 
-	printHeader(formula, cask)
-	printUserInteractionSummary(formula, cask, pkgName)
-	printMetadata(formula, cask)
+	printHeader(data)
+	printUserInteractionSummary(data)
+	printMetadata(data)
 
 	fmt.Println()
 }
 
 // === Main Sections === //
 
-func printHeader(formula *FormulaInfo, cask *CaskInfo) {
-	printTypeNameAndDesc(formula, cask)
+func printHeader(data *statistics) {
+	printTypeNameAndDesc(data.Type, data.Name, data.Desc)
 	fmt.Println()
 }
 
-func printUserInteractionSummary(
-	formula *FormulaInfo, cask *CaskInfo, pkgName string) {
-	printInstallDesc(formula, cask)
-	printRecentActivity(formula, cask, pkgName)
+func printUserInteractionSummary(data *statistics) {
+	printInstallDesc(
+		data.Type == "formula",
+		data.InstalledAsDependency,
+		data.InstalledOnRequest,
+		data.InstalledVersion,
+		data.ReverseDependencies)
+	printRecentActivity(
+		data.InstalledVersion,
+	 	data.LastAccessTime)
 	fmt.Println()
 }
 
-func printMetadata(formula *FormulaInfo, cask *CaskInfo) {
-	printVersionInfo(formula, cask)
-	printHomeAndLicense(formula, cask)
+func printMetadata(data *statistics) {
+	printVersionInfo(
+		data.Type,
+		data.InstalledVersion,
+		data.Outdated)
+	printHomeAndLicense(data.Homepage, data.License)
 }
 
 // === #Section: Header# === //
 
-func printTypeNameAndDesc(formula *FormulaInfo, cask *CaskInfo) {
-	var icon, typ, name, desc string
-
-	if formula != nil {
-		icon = "🍺"
-		typ = "(formula)"
-		name = formula.Name
-		desc = formula.Desc
-	} else if cask != nil {
-		icon = "☕️"
-		typ = "(cask)"
-		name = cask.Token
-		desc = cask.Desc
-	} else {
-		name = "(unknown)"
+func printTypeNameAndDesc(typ string, name string, desc string) {
+	var icon string
+	switch typ {
+		case "formula":
+			icon = "🍺"
+		case "cask":
+			icon = "☕️"
 	}
 
 	fmt.Printf("%s ", icon)
@@ -73,53 +71,45 @@ func printTypeNameAndDesc(formula *FormulaInfo, cask *CaskInfo) {
 // === #Section: User Interaction Summary# === //
 
 // answers questions like "how it got here?"
-func printInstallDesc(formula *FormulaInfo, cask *CaskInfo) {
-	if cask != nil || formula == nil {
-		return	// formulae only
+func printInstallDesc(
+	isFormulae bool,
+	asDependency bool,
+	onRequest bool,
+	version string,
+	reverseDependencies []string,
+) {
+	// formulae only
+	if !isFormulae {
+		return
 	}
 
-	if len(formula.Installed) == 0 {
+	if version == "" {
 		return
-	} else if formula.Installed[0].InstalledOnRequest {
+	} else if onRequest {
 		color.Blue("► You installed this package by running `brew install`.\n")
-	} else if formula.Installed[0].InstalledAsDependency {
+	} else if asDependency {
 		color.Blue("► This package was installed automatically as a dependency.\n")
-		// list reverse dependencies
-		dependencies, err := GetReverseDependencies(formula.Name)
-		if err != nil {
-			fmt.Printf("Error getting reverse dependencies: %v\n", err)
-		} else {
-			fmt.Printf("Used by: %s\n", strings.Join(dependencies, ", "))
-		}
+		fmt.Printf("Used by: %s\n",
+			strings.Join(reverseDependencies, ", "))
 	}
 }
 
 // answers questions like "have I used this recently?"
-func printRecentActivity(formula *FormulaInfo, cask *CaskInfo, pkgName string) {
+func printRecentActivity(installedVersion string, atime time.Time) {
 	// skip if not installed
-	if (formula != nil && len(formula.Installed) == 0) ||
-		(cask != nil && cask.Installed == "") {
+	if installedVersion == "" {
 		return
 	}
-
-	// get last access time (atime)
-	binPath := filepath.Join("/opt/homebrew/bin", pkgName)
-	info, err := os.Stat(binPath)
-	if err != nil {
-		return	// skip if no binary is found
-	}
-	atime := info.Sys().(*syscall.Stat_t).Atimespec
 
 	// print usage info
 	var format string
 	var humanReadableDuration string
 
-	timestamp := time.Unix(atime.Unix())
-	humanReadableDuration = durafmt.ParseShort(time.Since(timestamp)).String()
+	humanReadableDuration = durafmt.ParseShort(time.Since(atime)).String()
 	format = func() string {
-		if atime.Nano() == 0 {
+		if atime.Nanosecond() == 0 {
 			return "► You never used this."
-		} else if time.Since(timestamp) < 24*7*time.Hour {
+		} else if time.Since(atime) < 24*7*time.Hour {
 			return "► You used this in %s."
 		} else {
 			return "► You haven't used this for %s."
@@ -133,50 +123,32 @@ func printRecentActivity(formula *FormulaInfo, cask *CaskInfo, pkgName string) {
 
 // prints badges like [Outdated] [Up to date] ...
 // used by printMetadata
-func printVersionInfo(formula *FormulaInfo, cask *CaskInfo) {
-	var installedVersion string
+func printVersionInfo(typ string, installedVersion string, outdated bool) {
 	var installBadge string
 	var installBadgeColor color.Attribute
 
-	if formula != nil {
-		if len(formula.Installed) != 0  {
-			installedVersion = formula.Installed[0].Version
-			if formula.Outdated {
-				installBadge = "[Outdated]"
-				installBadgeColor = color.FgYellow
-			} else {
-				installBadge = "[Up to date]"
-				installBadgeColor = color.FgGreen
-			}
+	if installedVersion != "" {
+		if outdated {
+			installBadge = "[Outdated]"
+			installBadgeColor = color.FgYellow
 		} else {
-			installBadge = "[Not installed]"
-			installBadgeColor = color.FgRed
+			installBadge = "[Up to date]"
+			installBadgeColor = color.FgGreen
 		}
-	} else if cask != nil {
-		installedVersion = cask.Version
-		if cask.Installed != "" {
-			if cask.Outdated {
-				installBadge = "[Outdated]"
-				installBadgeColor = color.FgYellow
-			} else {
-				installBadge = "[Up to date]"
-				installBadgeColor = color.FgGreen
-			}
-		} else {
-			installBadge = "[Not installed]"
-			installBadgeColor = color.FgRed
-		}
+	} else {
+		installBadge = "[Not installed]"
+		installBadgeColor = color.FgRed
 	}
 
 	fmt.Printf("📦 %s", installedVersion)
 	color.New(installBadgeColor).Printf(" %s\n", installBadge)
 }
 
-func printHomeAndLicense(formula *FormulaInfo, cask *CaskInfo) {
-	if formula != nil {
-		fmt.Printf("🔗 %s\n", formula.Homepage)
-		fmt.Printf("📜 %s\n", formula.License)
-	} else if cask != nil {
-		fmt.Printf("🔗 %s\n", cask.Homepage)
+func printHomeAndLicense(homepage string, license string) {
+	if homepage != "" {
+		fmt.Printf("🔗 %s\n", homepage)
+	}
+	if license != "" {
+		fmt.Printf("📜 %s\n", license)
 	}
 }

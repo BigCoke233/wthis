@@ -27,8 +27,9 @@ func main() {
          	// prompt
           	color.White("What the heck is \"%s\" ...?", pkgName)
          	// search and print
-         	formulae, cask := GetInfo(pkgName)
-          	PrintInfo(formulae, cask, pkgName)
+         	formulae, cask := GetBrewInfo(pkgName)
+          	data := UnifyInfo(formulae, cask, pkgName)
+          	PrintInfo(data)
             return nil
         },
     }
