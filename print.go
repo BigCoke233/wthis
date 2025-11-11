@@ -31,16 +31,18 @@ func printHeader(data *statistics) {
 }
 
 func printUserInteractionSummary(data *statistics) {
-	printInstallDesc(
+	printed1 := printInstallDesc(
 		data.Type == "formula",
 		data.InstalledAsDependency,
 		data.InstalledOnRequest,
 		data.InstalledVersion,
 		data.ReverseDependencies)
-	printRecentActivity(
+	printed2 := printRecentActivity(
 		data.InstalledVersion,
 	 	data.LastAccessTime)
-	fmt.Println()
+	if printed1 || printed2 {
+		fmt.Println()
+	}
 }
 
 func printMetadata(data *statistics) {
@@ -76,14 +78,14 @@ func printInstallDesc(
 	onRequest bool,
 	version string,
 	reverseDependencies []string,
-) {
+) (printed bool) {
 	// formulae only
 	if !isFormulae {
-		return
+		return false
 	}
 
 	if version == "" {
-		return
+		return false
 	} else if onRequest {
 		color.Blue("► You installed this package by running `brew install`.\n")
 	} else if asDependency {
@@ -91,13 +93,16 @@ func printInstallDesc(
 		fmt.Printf("Used by: %s\n",
 			strings.Join(reverseDependencies, ", "))
 	}
+	return true
 }
 
 // answers questions like "have I used this recently?"
-func printRecentActivity(installedVersion string, atime time.Time) {
+func printRecentActivity(
+	installedVersion string,
+	atime time.Time) (printed bool) {
 	// skip if not installed
 	if installedVersion == "" {
-		return
+		return false
 	}
 
 	// print usage info
@@ -109,6 +114,7 @@ func printRecentActivity(installedVersion string, atime time.Time) {
 	} else {
 		color.Blue("► You haven't used this for %s.", humanReadableDuration)
 	}
+	return true
 }
 
 // === #Section: Metadata# === //
