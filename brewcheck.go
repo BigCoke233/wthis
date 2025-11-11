@@ -11,7 +11,7 @@ import (
 	"github.com/fatih/color"
 )
 
-const cacheTTL = 7 * 24 * time.Hour
+const cacheTTL = 3 * 24 * time.Hour // 3 days
 
 func EnsureBrewAvailable() {
 	cacheFile := filepath.Join(xdg.CacheHome, "wthis", "brew-checked")
