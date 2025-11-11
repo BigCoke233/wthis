@@ -11,6 +11,8 @@ import (
 	"github.com/hako/durafmt"
 )
 
+// === Print Entry Point === //
+
 func PrintInfo(formula *FormulaInfo, cask *CaskInfo, pkgName string) {
 	if formula == nil && cask == nil {
 		fmt.Println("Package not found.")
@@ -18,16 +20,34 @@ func PrintInfo(formula *FormulaInfo, cask *CaskInfo, pkgName string) {
 	}
 
 	printHeader(formula, cask)
-	printInstallDesc(formula, cask)
-	printRecentActivity(formula, cask, pkgName)
-	printVersionInfo(formula, cask)
+	printUserInteractionSummary(formula, cask, pkgName)
 	printMetadata(formula, cask)
 
 	fmt.Println()
 }
 
-// prints the icon and package name
+// === Main Sections === //
+
 func printHeader(formula *FormulaInfo, cask *CaskInfo) {
+	printTypeNameAndDesc(formula, cask)
+	fmt.Println()
+}
+
+func printUserInteractionSummary(
+	formula *FormulaInfo, cask *CaskInfo, pkgName string) {
+	printInstallDesc(formula, cask)
+	printRecentActivity(formula, cask, pkgName)
+	fmt.Println()
+}
+
+func printMetadata(formula *FormulaInfo, cask *CaskInfo) {
+	printVersionInfo(formula, cask)
+	printHomeAndLicense(formula, cask)
+}
+
+// === #Section: Header# === //
+
+func printTypeNameAndDesc(formula *FormulaInfo, cask *CaskInfo) {
 	var icon, typ, name, desc string
 
 	if formula != nil {
@@ -47,8 +67,10 @@ func printHeader(formula *FormulaInfo, cask *CaskInfo) {
 	fmt.Printf("%s ", icon)
 	color.New(color.FgYellow).Printf("%s ", typ)
 	color.New(color.Bold).Printf("%s", name)
-	fmt.Printf(" - %s\n\n", desc)
+	fmt.Printf(" - %s\n", desc)
 }
+
+// === #Section: User Interaction Summary# === //
 
 // answers questions like "how it got here?"
 func printInstallDesc(formula *FormulaInfo, cask *CaskInfo) {
@@ -70,7 +92,6 @@ func printInstallDesc(formula *FormulaInfo, cask *CaskInfo) {
 			fmt.Printf("Used by: %s\n", strings.Join(dependencies, ", "))
 		}
 	}
-	fmt.Println()
 }
 
 // answers questions like "have I used this recently?"
@@ -107,6 +128,8 @@ func printRecentActivity(formula *FormulaInfo, cask *CaskInfo, pkgName string) {
 
 	color.Blue(format, humanReadableDuration)
 }
+
+// === #Section: Metadata# === //
 
 // prints badges like [Outdated] [Up to date] ...
 // used by printMetadata
@@ -149,8 +172,7 @@ func printVersionInfo(formula *FormulaInfo, cask *CaskInfo) {
 	color.New(installBadgeColor).Printf(" %s\n", installBadge)
 }
 
-// prints homepage, license, and other fields
-func printMetadata(formula *FormulaInfo, cask *CaskInfo) {
+func printHomeAndLicense(formula *FormulaInfo, cask *CaskInfo) {
 	if formula != nil {
 		fmt.Printf("🔗 %s\n", formula.Homepage)
 		fmt.Printf("📜 %s\n", formula.License)
