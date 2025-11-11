@@ -4,6 +4,11 @@ import (
 	"fmt"
 	"github.com/fatih/color"
 	"strings"
+	"os"
+	"path/filepath"
+	"syscall"
+	"time"
+	"github.com/hako/durafmt"
 )
 
 func PrintInfo(formula *FormulaInfo, cask *CaskInfo, pkgName string) {
@@ -14,6 +19,7 @@ func PrintInfo(formula *FormulaInfo, cask *CaskInfo, pkgName string) {
 
 	printHeader(formula, cask)
 	printInstallDesc(formula, cask)
+	printRecentActivity(formula, cask, pkgName)
 	printVersionInfo(formula, cask)
 	printMetadata(formula, cask)
 
@@ -53,9 +59,9 @@ func printInstallDesc(formula *FormulaInfo, cask *CaskInfo) {
 	if len(formula.Installed) == 0 {
 		return
 	} else if formula.Installed[0].InstalledOnRequest {
-		color.Blue("You installed this package by running `brew install`.\n")
+		color.Blue("► You installed this package by running `brew install`.\n")
 	} else if formula.Installed[0].InstalledAsDependency {
-		color.Blue("This package was installed automatically as a dependency.\n")
+		color.Blue("► This package was installed automatically as a dependency.\n")
 		// list reverse dependencies
 		dependencies, err := GetReverseDependencies(formula.Name)
 		if err != nil {
@@ -65,6 +71,41 @@ func printInstallDesc(formula *FormulaInfo, cask *CaskInfo) {
 		}
 	}
 	fmt.Println()
+}
+
+// answers questions like "have I used this recently?"
+func printRecentActivity(formula *FormulaInfo, cask *CaskInfo, pkgName string) {
+	// skip if not installed
+	if (formula != nil && len(formula.Installed) == 0) ||
+		(cask != nil && cask.Installed == "") {
+		return
+	}
+
+	// get last access time (atime)
+	binPath := filepath.Join("/opt/homebrew/bin", pkgName)
+	info, err := os.Stat(binPath)
+	if err != nil {
+		return	// skip if no binary is found
+	}
+	atime := info.Sys().(*syscall.Stat_t).Atimespec
+
+	// print usage info
+	var format string
+	var humanReadableDuration string
+
+	timestamp := time.Unix(atime.Unix())
+	humanReadableDuration = durafmt.ParseShort(time.Since(timestamp)).String()
+	format = func() string {
+		if atime.Nano() == 0 {
+			return "► You never used this."
+		} else if time.Since(timestamp) < 24*7*time.Hour {
+			return "► You used this in %s."
+		} else {
+			return "► You haven't used this for %s."
+		}
+	}()
+
+	color.Blue(format, humanReadableDuration)
 }
 
 // prints badges like [Outdated] [Up to date] ...
