@@ -51,7 +51,7 @@ func printHeader(formula *FormulaInfo, cask *CaskInfo) {
 func printDescription(formula *FormulaInfo, cask *CaskInfo) {
 	if formula != nil {
 		if len(formula.Installed) == 0 {
-			color.Blue("This package is not installed.\n")
+			return
 		} else if formula.Installed[0].InstalledOnRequest {
 			color.Blue("You installed this package by running `brew install`.\n")
 		} else if formula.Installed[0].InstalledAsDependency {
@@ -64,12 +64,6 @@ func printDescription(formula *FormulaInfo, cask *CaskInfo) {
 				fmt.Printf("Used by: %s\n", strings.Join(dependencies, ", "))
 			}
 		}
-	} else if cask != nil {
-		if cask.Installed == "" {
-			color.Blue("This cask is not installed.\n")
-		} else {
-			color.Blue("This cask is installed.\n")
-		}
 	}
 
 	fmt.Println()
@@ -77,33 +71,50 @@ func printDescription(formula *FormulaInfo, cask *CaskInfo) {
 
 // printVersionInfo prints the latest version and status
 func printVersionInfo(formula *FormulaInfo, cask *CaskInfo) {
+	var installedVersion string
+	var installBadge string
+	var installBadgeColor color.Attribute
+
 	if formula != nil {
-		fmt.Printf("📦 Latest: %s", formula.Versions.Stable)
-		if len(formula.Installed) == 0 {
-			color.New(color.FgRed).Print(" [Not Installed]\n")
-		} else if formula.Outdated {
-			color.New(color.FgYellow).Print(" [Outdated]\n")
+		if len(formula.Installed) != 0  {
+			installedVersion = formula.Installed[0].Version
+			if formula.Outdated {
+				installBadge = "[Outdated]"
+				installBadgeColor = color.FgYellow
+			} else {
+				installBadge = "[Up to date]"
+				installBadgeColor = color.FgGreen
+			}
 		} else {
-			color.New(color.FgGreen).Print(" [Up to date]\n")
+			installBadge = "[Not installed]"
+			installBadgeColor = color.FgRed
 		}
 	} else if cask != nil {
-		fmt.Printf("📦 Installed version: %s", cask.Installed)
-		if cask.Installed == "" {
-			color.New(color.FgRed).Print(" [Not Installed]\n")
-		} else if cask.Outdated {
-			color.New(color.FgYellow).Print(" [Outdated]\n")
+		installedVersion = cask.Version
+		if cask.Installed != "" {
+			if cask.Outdated {
+				installBadge = "[Outdated]"
+				installBadgeColor = color.FgYellow
+			} else {
+				installBadge = "[Up to date]"
+				installBadgeColor = color.FgGreen
+			}
 		} else {
-			color.New(color.FgGreen).Print(" [Up to date]\n")
+			installBadge = "[Not installed]"
+			installBadgeColor = color.FgRed
 		}
 	}
+
+	fmt.Printf("📦 %s", installedVersion)
+	color.New(installBadgeColor).Printf(" %s\n", installBadge)
 }
 
 // printMetadata prints homepage, license, and other fields
 func printMetadata(formula *FormulaInfo, cask *CaskInfo) {
 	if formula != nil {
-		fmt.Printf("🔗 Homepage: %s\n", formula.Homepage)
-		fmt.Printf("📜 License: %s\n", formula.License)
+		fmt.Printf("🔗 %s\n", formula.Homepage)
+		fmt.Printf("📜 %s\n", formula.License)
 	} else if cask != nil {
-		fmt.Printf("🔗 Homepage: %s\n", cask.Homepage)
+		fmt.Printf("🔗 %s\n", cask.Homepage)
 	}
 }
