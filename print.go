@@ -45,7 +45,6 @@ func printUserInteractionSummary(data *statistics) {
 
 func printMetadata(data *statistics) {
 	printVersionInfo(
-		data.Type,
 		data.InstalledVersion,
 		data.Outdated)
 	printHomeAndLicense(data.Homepage, data.License)
@@ -116,11 +115,10 @@ func printRecentActivity(installedVersion string, atime time.Time) {
 
 // prints badges like [Outdated] [Up to date] ...
 // used by printMetadata
-func printVersionInfo(typ string, installedVersion string, outdated bool) {
-	var installBadge string
-	var installBadgeColor color.Attribute
-
+func printVersionInfo(installedVersion string, outdated bool) {
 	if installedVersion != "" {
+		var installBadge string
+		var installBadgeColor color.Attribute
 		if outdated {
 			installBadge = "[Outdated]"
 			installBadgeColor = color.FgYellow
@@ -128,13 +126,12 @@ func printVersionInfo(typ string, installedVersion string, outdated bool) {
 			installBadge = "[Up to date]"
 			installBadgeColor = color.FgGreen
 		}
+		fmt.Printf("📦 %s", installedVersion)
+		color.New(installBadgeColor).Printf(" %s\n", installBadge)
 	} else {
-		installBadge = "[Not installed]"
-		installBadgeColor = color.FgRed
+		color.Red("📦 [Not installed]")
 	}
 
-	fmt.Printf("📦 %s", installedVersion)
-	color.New(installBadgeColor).Printf(" %s\n", installBadge)
 }
 
 func printHomeAndLicense(homepage string, license string) {
