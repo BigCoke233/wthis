@@ -19,9 +19,7 @@ func main() {
         Action: func(ctx context.Context, cmd *cli.Command) error {
         	// check args
         	if cmd.Args().Len() == 0 {
-        		color.Red("❌ Please provide a formulae/cask name.")
-          		fmt.Println("Usage: wthis <name>")
-        		return nil
+        		printErrorAndExit("Please provide a formulae/cask name.")
         	}
          	pkgName := cmd.Args().First()
          	// prompt
@@ -39,4 +37,10 @@ func main() {
     if err := cmd.Run(context.Background(), os.Args); err != nil {
         log.Fatal(err)
     }
+}
+
+func printErrorAndExit(msg string) {
+	hideLoadingPrompt()
+	color.Red("❌ %s", msg)
+	os.Exit(1)
 }

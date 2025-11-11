@@ -40,8 +40,7 @@ type CaskInfo struct {
 func GetBrewInfo(pkg string) (*FormulaInfo, *CaskInfo) {
 	out, err := exec.Command("brew", "info", "--json=v2", pkg).Output()
 	if err != nil {
-		color.Red("❌ Error fetching info. Please check for typo.")
-		return nil, nil
+		printErrorAndExit("Error fetching info. Please check for typo.")
 	}
 
 	var data struct {
@@ -50,8 +49,7 @@ func GetBrewInfo(pkg string) (*FormulaInfo, *CaskInfo) {
 	}
 
 	if err := json.Unmarshal(out, &data); err != nil {
-		color.Red("❌ Error parsing data.")
-		return nil, nil
+		printErrorAndExit("Error parsing data.")
 	}
 
 	if len(data.Formulae) > 0 {
