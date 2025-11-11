@@ -32,19 +32,8 @@ func main() {
     }
     pkg := args[1]
 
-    // look up formulae
-    out, brewLookupError := exec.Command("brew", "formulae", "--json=v2", pkg).Output()
-    if brewLookupError != nil {
-        fmt.Println("🍺 Homebrew Error:", string(out))
-        os.Exit(1)
-    }
-
-    // parse formulae
-    var formulae, cask, getformulaeErr = GetInfo(pkg)
-    if getformulaeErr != nil {
-        fmt.Println("Error:", getformulaeErr)
-        os.Exit(1)
-    }
-
+    // get formulae/cask info
+    formulae, cask := GetInfo(pkg)
+    // print info
     PrintInfo(formulae, cask, pkg)
 }
