@@ -5,6 +5,7 @@ import (
 	"os/exec"
 	"strings"
 	"bytes"
+	"github.com/fatih/color"
 )
 
 type FormulaInfo struct {
@@ -36,10 +37,11 @@ type CaskInfo struct {
 
 // GetInfo fetches package info for both formulae and casks.
 // It returns one of the two structs depending on the package type.
-func GetInfo(pkg string) (*FormulaInfo, *CaskInfo, error) {
+func GetInfo(pkg string) (*FormulaInfo, *CaskInfo) {
 	out, err := exec.Command("brew", "info", "--json=v2", pkg).Output()
 	if err != nil {
-		return nil, nil, err
+		color.Red("❌ Error fetching info. Please check for typo.")
+		return nil, nil
 	}
 
 	var data struct {
@@ -48,17 +50,18 @@ func GetInfo(pkg string) (*FormulaInfo, *CaskInfo, error) {
 	}
 
 	if err := json.Unmarshal(out, &data); err != nil {
-		return nil, nil, err
+		color.Red("❌ Error parsing data.")
+		return nil, nil
 	}
 
 	if len(data.Formulae) > 0 {
-		return &data.Formulae[0], nil, nil
+		return &data.Formulae[0], nil
 	}
 	if len(data.Casks) > 0 {
-		return nil, &data.Casks[0], nil
+		return nil, &data.Casks[0]
 	}
 
-	return nil, nil, nil // not found
+	return nil, nil // not found
 }
 
 func GetReverseDependencies(pkg string) ([]string, error) {
