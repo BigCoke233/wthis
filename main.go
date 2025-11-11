@@ -17,12 +17,16 @@ func main() {
         Name:  "wthis",
         Usage: "Fetch information of a Homebrew formulae or cask, like how it got installed, reverse dependencies, etc.",
         Action: func(ctx context.Context, cmd *cli.Command) error {
+        	// check args
         	if cmd.Args().Len() == 0 {
         		color.Red("❌ Please provide a formulae/cask name.")
           		fmt.Println("Usage: wthis <name>")
         		return nil
         	}
-        	pkgName := cmd.Args().First()
+         	pkgName := cmd.Args().First()
+         	// prompt
+          	color.White("What the heck is \"%s\" ...?", pkgName)
+         	// search and print
          	formulae, cask := GetInfo(pkgName)
           	PrintInfo(formulae, cask, pkgName)
             return nil
