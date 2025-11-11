@@ -25,10 +25,11 @@ func main() {
         	}
          	pkgName := cmd.Args().First()
          	// prompt
-          	color.White("What the heck is \"%s\" ...?", pkgName)
+          	showLoadingPrompt(fmt.Sprintf("What the heck is \"%s\"", pkgName))
          	// search and print
          	formulae, cask := GetBrewInfo(pkgName)
           	data := UnifyInfo(formulae, cask, pkgName)
+          	hideLoadingPrompt()
           	PrintInfo(data)
             return nil
         },
