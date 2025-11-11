@@ -3,7 +3,6 @@ package main
 import (
     "fmt"
     "os"
-    "os/exec"
     "context"
     "log"
     "github.com/fatih/color"
@@ -11,14 +10,7 @@ import (
 )
 
 func main() {
-	// Check if Homebrew is installed
-    _, brewInstallationErr := exec.LookPath("brew")
-    if brewInstallationErr != nil {
-        color.Red("🍺 Homebrew not installed.")
-        fmt.Println("This tool is for looking up formulae/cask information about packages installed with Homebrew.")
-        fmt.Println("If you don't have Homebrew, it's no use.")
-        os.Exit(0)
-    }
+	EnsureBrewAvailable()
 
     // declare CLI app
     cmd := &cli.Command{
