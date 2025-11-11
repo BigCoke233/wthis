@@ -63,7 +63,7 @@ func printTypeNameAndDesc(typ string, name string, desc string) {
 	}
 
 	fmt.Printf("%s ", icon)
-	color.New(color.FgYellow).Printf("%s ", typ)
+	color.New(color.FgYellow).Printf("(%s) ", typ)
 	color.New(color.Bold).Printf("%s", name)
 	fmt.Printf(" - %s\n", desc)
 }
