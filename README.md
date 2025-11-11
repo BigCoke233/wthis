@@ -10,7 +10,7 @@ A CLI tool to fetch information about a Homebrew formulae or cask. `wthis` stand
 ## Installation
 
 ```shell
-brew install eltrac/wthis/wthis
+brew install BigCoke233/wthis/wthis
 ```
 
 ## Usage
