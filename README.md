@@ -9,7 +9,7 @@ Personally, I like having full control over my computer. Deleting apps from macO
 ## Installation
 
 ```shell
-brew install BigCoke233/wthis/wthis
+brew install BigCoke233/tap/wthis
 ```
 
 ## Usage
