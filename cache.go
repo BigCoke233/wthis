@@ -35,3 +35,8 @@ func WriteCache(relPath string, data []byte) error {
 	path := CachePath(relPath)
 	return os.WriteFile(path, data, 0o644)
 }
+
+func ClearCache() error {
+	path := CachePath("")
+	return os.RemoveAll(path)
+}

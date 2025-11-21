@@ -12,11 +12,35 @@ import (
 func main() {
 	EnsureBrewAvailable()
 
+	var noCache, clearCache bool
+
 	// declare CLI app
 	cmd := &cli.Command{
 		Name:  "wthis",
 		Usage: "Fetch information of a Homebrew formulae or cask, like how it got installed, reverse dependencies, etc.",
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:    "no-cache",
+				Aliases: []string{"nc"},
+				Usage:   "Disable caching",
+				Value:   false,
+				Destination: &noCache,
+			},
+			&cli.BoolFlag{
+				Name:    "clear-cache",
+				Aliases: []string{"cc"},
+				Usage:   "Clear cache",
+				Value:   false,
+				Destination: &clearCache,
+			},
+		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
+			if clearCache {
+				ClearCache()
+				fmt.Println("Cache cleared.")
+				os.Exit(0)
+			}
+
 			// check args
 			if cmd.Args().Len() == 0 {
 				printErrorAndExit("Please provide a formulae/cask name.")
@@ -25,9 +49,8 @@ func main() {
 			// prompt
 			showLoadingPrompt(fmt.Sprintf("What the heck is \"%s\"", pkgName))
 			// try reading from cache
-			var stat *statistics
-			if stat = NewStatisticsFromCache(pkgName); stat == nil {
-				fmt.Println("cache not hit")
+			var stat *statistics = NewStatisticsFromCache(pkgName)
+			if noCache || stat == nil {
 				// cache not hit, then search
 				fmlChan := make(chan *FormulaInfo)
 				caskChan := make(chan *CaskInfo)
@@ -42,7 +65,10 @@ func main() {
 					rvsChan <- GetBrewUses(pkgName)
 				}()
 				stat = NewStatistics(<-fmlChan, <-caskChan, pkgName,<-rvsChan)
-				stat.Cache()
+				// handle caching
+				if !noCache {
+					stat.Cache()
+				}
 			}
 			// print
 			hideLoadingPrompt()
