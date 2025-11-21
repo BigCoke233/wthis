@@ -25,8 +25,18 @@ func main() {
 			// prompt
 			showLoadingPrompt(fmt.Sprintf("What the heck is \"%s\"", pkgName))
 			// search, tidy up, and print
-			formula, cask := GetBrewInfo(pkgName)
-			stat := NewStatistics(formula, cask, pkgName)
+			fmlChan := make(chan *FormulaInfo)
+			caskChan := make(chan *CaskInfo)
+			rvsChan := make(chan []string)
+			go func() {
+				formula, cask := GetBrewInfo(pkgName)
+				fmlChan <- formula
+				caskChan <- cask
+			}()
+			go func() {
+				rvsChan <- GetBrewUses(pkgName)
+			}()
+			stat := NewStatistics(<-fmlChan, <-caskChan, pkgName,<-rvsChan)
 			hideLoadingPrompt()
 			stat.Print()
 			return nil

@@ -26,7 +26,7 @@ type statistics struct {
 	ReverseDependencies []string
 }
 
-func NewStatistics(formula *FormulaInfo, cask *CaskInfo, pkgName string) *statistics {
+func NewStatistics(formula *FormulaInfo, cask *CaskInfo, pkgName string, rvs []string) *statistics {
 	var statObject statistics
 
 	// === formula/cask specific === //
@@ -47,7 +47,7 @@ func NewStatistics(formula *FormulaInfo, cask *CaskInfo, pkgName string) *statis
 		}
 
 		// get reverse dependencies
-		statObject.ReverseDependencies = GetBrewUses(pkgName)
+		statObject.ReverseDependencies = rvs
 	} else if cask != nil {
 		statObject.Name = cask.Token
 		statObject.Type = "cask"
