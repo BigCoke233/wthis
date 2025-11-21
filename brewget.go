@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"github.com/fatih/color"
 	"os/exec"
@@ -63,16 +62,14 @@ func GetBrewInfo(pkg string) (*FormulaInfo, *CaskInfo) {
 }
 
 func GetBrewUses(pkg string) []string {
-	cmd := exec.Command("brew", "uses", "--installed", pkg)
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	if err := cmd.Run(); err != nil {
+	out, err := exec.Command("brew", "uses", "--installed", pkg).Output()
+	if err != nil {
 		color.Red("❌ Error fetching reverse dependencies.")
 		return []string{}
 	}
 
 	// Each line is a formula name
-	lines := strings.Split(strings.TrimSpace(out.String()), "\n")
+	lines := strings.Split(strings.TrimSpace(string(out)), "\n")
 	if len(lines) == 1 && lines[0] == "" {
 		return []string{}
 	}
