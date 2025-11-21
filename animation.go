@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"time"
-	"strings"
 	"github.com/fatih/color"
+	"strings"
+	"time"
 )
 
 var loadingDone chan bool

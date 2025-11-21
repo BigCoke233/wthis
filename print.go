@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"github.com/fatih/color"
+	"github.com/hako/durafmt"
 	"strings"
 	"time"
-	"github.com/hako/durafmt"
 )
 
 // === Main Sections === //
@@ -24,10 +24,10 @@ func PrintUserInteractionSummary(data *statistics) {
 		data.ReverseDependencies)
 	b := printRecentActivity(
 		data.InstalledVersion,
-	 	data.LastAccessTime,
+		data.LastAccessTime,
 		data.BinaryExists)
 
-	if a || b {	// add empty line only if any of above prints info
+	if a || b { // add empty line only if any of above prints info
 		fmt.Println()
 	}
 }
@@ -44,10 +44,10 @@ func PrintMetadata(data *statistics) {
 func printTypeNameAndDesc(typ string, name string, desc string) {
 	var icon string
 	switch typ {
-		case "formula":
-			icon = "🍺"
-		case "cask":
-			icon = "☕️"
+	case "formula":
+		icon = "🍺"
+	case "cask":
+		icon = "☕️"
 	}
 
 	fmt.Printf("%s ", icon)

@@ -1,11 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
+	"github.com/fatih/color"
 	"os/exec"
 	"strings"
-	"bytes"
-	"github.com/fatih/color"
 )
 
 type FormulaInfo struct {
@@ -62,7 +62,7 @@ func GetBrewInfo(pkg string) (*FormulaInfo, *CaskInfo) {
 	return nil, nil // not found
 }
 
-func GetBrewUses(pkg string) ([]string) {
+func GetBrewUses(pkg string) []string {
 	cmd := exec.Command("brew", "uses", "--installed", pkg)
 	var out bytes.Buffer
 	cmd.Stdout = &out

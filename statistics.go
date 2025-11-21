@@ -1,32 +1,32 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"syscall"
 	"time"
-	"fmt"
 )
 
 type statistics struct {
-	Name string;
-	Type string;		//formula or cask
-	Desc string;
-	Outdated bool;
+	Name     string
+	Type     string //formula or cask
+	Desc     string
+	Outdated bool
 
-	InstalledAsDependency bool;
-	InstalledOnRequest bool;
-	BinaryExists bool;
-	LastAccessTime time.Time;
+	InstalledAsDependency bool
+	InstalledOnRequest    bool
+	BinaryExists          bool
+	LastAccessTime        time.Time
 
-	InstalledVersion string;
-	Homepage string;
-	License string;
+	InstalledVersion string
+	Homepage         string
+	License          string
 
-	ReverseDependencies []string;
+	ReverseDependencies []string
 }
 
-func NewStatistics(formula *FormulaInfo, cask *CaskInfo, pkgName string) (*statistics) {
+func NewStatistics(formula *FormulaInfo, cask *CaskInfo, pkgName string) *statistics {
 	var statObject statistics
 
 	// === formula/cask specific === //

@@ -1,11 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"time"
-	"fmt"
 
 	"github.com/adrg/xdg"
 	"github.com/fatih/color"
@@ -19,7 +19,7 @@ func EnsureBrewAvailable() {
 	// 1. check if cache file exists and is fresh
 	if info, err := os.Stat(cache); err == nil {
 		if time.Since(info.ModTime()) < TTL {
-			return	// recently verified that brew exists
+			return // recently verified that brew exists
 		}
 	}
 
