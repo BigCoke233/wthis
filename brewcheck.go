@@ -11,14 +11,14 @@ import (
 	"github.com/fatih/color"
 )
 
-const cacheTTL = 3 * 24 * time.Hour // 3 days
+const TTL = 3 * 24 * time.Hour // 3 days
 
 func EnsureBrewAvailable() {
-	cacheFile := filepath.Join(xdg.CacheHome, "wthis", "brew-checked")
+	cache := filepath.Join(xdg.CacheHome, "wthis", "brew-checked")
 
 	// 1. check if cache file exists and is fresh
-	if info, err := os.Stat(cacheFile); err == nil {
-		if time.Since(info.ModTime()) < cacheTTL {
+	if info, err := os.Stat(cache); err == nil {
+		if time.Since(info.ModTime()) < TTL {
 			return	// recently verified that brew exists
 		}
 	}
@@ -32,6 +32,6 @@ func EnsureBrewAvailable() {
 	}
 
 	// 3. write cache
-	_ = os.MkdirAll(filepath.Dir(cacheFile), 0o755)
-	_ = os.WriteFile(cacheFile, []byte{}, 0o644)
+	_ = os.MkdirAll(filepath.Dir(cache), 0o755)
+	_ = os.WriteFile(cache, []byte{}, 0o644)
 }

@@ -25,7 +25,7 @@ type statistics struct {
 	ReverseDependencies []string;
 }
 
-func UnifyInfo(formula *FormulaInfo, cask *CaskInfo, pkgName string) (*statistics) {
+func NewStatistics(formula *FormulaInfo, cask *CaskInfo, pkgName string) (*statistics) {
 	var statObject statistics
 
 	// === formula/cask specific === //

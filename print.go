@@ -31,17 +31,18 @@ func printHeader(data *statistics) {
 }
 
 func printUserInteractionSummary(data *statistics) {
-	printed1 := printInstallDesc(
+	a := printInstallDesc(
 		data.Type == "formula",
 		data.InstalledAsDependency,
 		data.InstalledOnRequest,
 		data.InstalledVersion,
 		data.ReverseDependencies)
-	printed2 := printRecentActivity(
+	b := printRecentActivity(
 		data.InstalledVersion,
 	 	data.LastAccessTime,
 		data.BinaryExists)
-	if printed1 || printed2 {
+
+	if a || b {	// add empty line only if any of above prints info
 		fmt.Println()
 	}
 }
@@ -74,14 +75,14 @@ func printTypeNameAndDesc(typ string, name string, desc string) {
 
 // answers questions like "how it got here?"
 func printInstallDesc(
-	isFormulae bool,
+	isFormula bool,
 	asDependency bool,
 	onRequest bool,
 	version string,
 	reverseDependencies []string,
 ) (printed bool) {
-	// formulae only
-	if !isFormulae {
+	// formula only
+	if !isFormula {
 		return false
 	}
 
@@ -109,13 +110,13 @@ func printRecentActivity(
 	}
 
 	// print usage info
-	humanReadableDuration := durafmt.ParseShort(time.Since(atime)).String()
+	duratext := durafmt.ParseShort(time.Since(atime)).String()
 	if atime.Nanosecond() == 0 {
 		color.Blue("► You never used this.")
 	} else if time.Since(atime) < 24*7*time.Hour {
-		color.Blue("► You used this in %s.", humanReadableDuration)
+		color.Blue("► You used this in %s.", duratext)
 	} else {
-		color.Blue("► You haven't used this for %s.", humanReadableDuration)
+		color.Blue("► You haven't used this for %s.", duratext)
 	}
 	return true
 }
@@ -124,8 +125,8 @@ func printRecentActivity(
 
 // prints badges like [Outdated] [Up to date] ...
 // used by printMetadata
-func printVersionInfo(installedVersion string, outdated bool) {
-	if installedVersion != "" {
+func printVersionInfo(installed string, outdated bool) {
+	if installed != "" {
 		var installBadge string
 		var installBadgeColor color.Attribute
 		if outdated {
@@ -135,7 +136,7 @@ func printVersionInfo(installedVersion string, outdated bool) {
 			installBadge = "[Up to date]"
 			installBadgeColor = color.FgGreen
 		}
-		fmt.Printf("📦 %s", installedVersion)
+		fmt.Printf("📦 %s", installed)
 		color.New(installBadgeColor).Printf(" %s\n", installBadge)
 	} else {
 		color.Red("📦 [Not installed]")

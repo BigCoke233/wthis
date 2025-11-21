@@ -24,11 +24,11 @@ func main() {
          	pkgName := cmd.Args().First()
          	// prompt
           	showLoadingPrompt(fmt.Sprintf("What the heck is \"%s\"", pkgName))
-         	// search and print
-         	formulae, cask := GetBrewInfo(pkgName)
-          	data := UnifyInfo(formulae, cask, pkgName)
+         	// search, tidy up, and print
+         	formula, cask := GetBrewInfo(pkgName)
+          	stat := NewStatistics(formula, cask, pkgName)
           	hideLoadingPrompt()
-          	PrintInfo(data)
+          	PrintInfo(stat)
             return nil
         },
     }
