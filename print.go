@@ -39,7 +39,8 @@ func printUserInteractionSummary(data *statistics) {
 		data.ReverseDependencies)
 	printed2 := printRecentActivity(
 		data.InstalledVersion,
-	 	data.LastAccessTime)
+	 	data.LastAccessTime,
+		data.BinaryExists)
 	if printed1 || printed2 {
 		fmt.Println()
 	}
@@ -98,10 +99,12 @@ func printInstallDesc(
 
 // answers questions like "have I used this recently?"
 func printRecentActivity(
-	installedVersion string,
-	atime time.Time) (printed bool) {
-	// skip if not installed
-	if installedVersion == "" {
+	installed string,
+	atime time.Time,
+	binary bool) (printed bool) {
+
+	// skip if not installed or no related binary
+	if installed == "" || !binary {
 		return false
 	}
 

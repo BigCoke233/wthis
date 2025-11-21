@@ -15,6 +15,7 @@ type statistics struct {
 
 	InstalledAsDependency bool;
 	InstalledOnRequest bool;
+	BinaryExists bool;
 	LastAccessTime time.Time;
 
 	InstalledVersion string;
@@ -63,8 +64,10 @@ func UnifyInfo(formula *FormulaInfo, cask *CaskInfo, pkgName string) (*statistic
 	info, err := os.Stat(binPath)
 	if err != nil {
 		atime = time.Time{} // skip if no binary is found
+		statObject.BinaryExists = false
 	} else {
 		atime = time.Unix(info.Sys().(*syscall.Stat_t).Atimespec.Unix())
+		statObject.BinaryExists = true
 	}
 	statObject.LastAccessTime = atime
 
