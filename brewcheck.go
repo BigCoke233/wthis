@@ -17,10 +17,10 @@ func EnsureBrewAvailable() {
 	cache := filepath.Join(xdg.CacheHome, "wthis", "brew-checked")
 
 	// 1. check if cache file exists and is fresh
-	if info, err := os.Stat(cache); err == nil {
-		if time.Since(info.ModTime()) < TTL {
-			return // recently verified that brew exists
-		}
+	data, _ := os.ReadFile(cache)
+	t, _ := time.Parse(time.RFC3339, string(data))
+	if time.Since(t) < TTL {
+		return
 	}
 
 	// 2. otherwise, actually check
@@ -33,5 +33,5 @@ func EnsureBrewAvailable() {
 
 	// 3. write cache
 	_ = os.MkdirAll(filepath.Dir(cache), 0o755)
-	_ = os.WriteFile(cache, []byte{}, 0o644)
+	_ = os.WriteFile(cache, []byte(time.Now().Format(time.RFC3339)), 0o644)
 }
