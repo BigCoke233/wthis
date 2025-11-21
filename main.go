@@ -20,17 +20,17 @@ func main() {
 		Usage: "Fetch information of a Homebrew formulae or cask, like how it got installed, reverse dependencies, etc.",
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
-				Name:    "no-cache",
-				Aliases: []string{"nc"},
-				Usage:   "Disable caching",
-				Value:   false,
+				Name:        "no-cache",
+				Aliases:     []string{"nc"},
+				Usage:       "Disable caching",
+				Value:       false,
 				Destination: &NoCache,
 			},
 			&cli.BoolFlag{
-				Name:    "clear-cache",
-				Aliases: []string{"cc"},
-				Usage:   "Clear cache",
-				Value:   false,
+				Name:        "clear-cache",
+				Aliases:     []string{"cc"},
+				Usage:       "Clear cache",
+				Value:       false,
 				Destination: &DoClearCache,
 			},
 		},
@@ -78,7 +78,7 @@ func searchAndPrint(pkgName string) {
 		go func() {
 			rvsChan <- GetBrewUses(pkgName)
 		}()
-		stat = NewStatistics(<-fmlChan, <-caskChan, pkgName,<-rvsChan)
+		stat = NewStatistics(<-fmlChan, <-caskChan, pkgName, <-rvsChan)
 		// handle caching
 		if !NoCache {
 			stat.Cache()
