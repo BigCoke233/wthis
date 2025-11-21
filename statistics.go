@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -9,6 +10,7 @@ import (
 )
 
 type statistics struct {
+	PkgName  string
 	Name     string
 	Type     string //formula or cask
 	Desc     string
@@ -25,6 +27,8 @@ type statistics struct {
 
 	ReverseDependencies []string
 }
+
+const dataTTL = time.Hour / 2
 
 func NewStatistics(formula *FormulaInfo, cask *CaskInfo, pkgName string, rvs []string) *statistics {
 	var statObject statistics
@@ -59,6 +63,8 @@ func NewStatistics(formula *FormulaInfo, cask *CaskInfo, pkgName string, rvs []s
 
 	// === general === //
 
+	statObject.PkgName = pkgName
+
 	// get system atime
 	var atime time.Time
 	binPath := filepath.Join("/opt/homebrew/bin", pkgName)
@@ -73,6 +79,25 @@ func NewStatistics(formula *FormulaInfo, cask *CaskInfo, pkgName string, rvs []s
 	statObject.LastAccessTime = atime
 
 	return &statObject
+}
+
+func NewStatisticsFromCache(pkgName string) *statistics {
+	raw, success := ReadCache("pkg/"+pkgName+".json", dataTTL)
+	if success {
+		var stat statistics
+		json.Unmarshal(raw, &stat)
+		return &stat
+	}
+	return nil
+}
+
+func (s *statistics) Cache() {
+	data, err := json.Marshal(s)
+	if err != nil {
+		fmt.Println("Error marshaling statistics:", err)
+		return
+	}
+	WriteCache("pkg/"+s.PkgName+".json", data)
 }
 
 func (s *statistics) Print() {

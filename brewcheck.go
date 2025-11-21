@@ -4,20 +4,17 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"time"
 
-	"github.com/adrg/xdg"
 	"github.com/fatih/color"
 )
 
 const TTL = 3 * 24 * time.Hour // 3 days
+const cacheName = "brew-checked"
 
 func EnsureBrewAvailable() {
-	cache := filepath.Join(xdg.CacheHome, "wthis", "brew-checked")
-
 	// 1. check if cache file exists and is fresh
-	data, _ := os.ReadFile(cache)
+	data, _ := ReadCache(cacheName, TTL)
 	t, _ := time.Parse(time.RFC3339, string(data))
 	if time.Since(t) < TTL {
 		return
@@ -32,6 +29,5 @@ func EnsureBrewAvailable() {
 	}
 
 	// 3. write cache
-	_ = os.MkdirAll(filepath.Dir(cache), 0o755)
-	_ = os.WriteFile(cache, []byte(time.Now().Format(time.RFC3339)), 0o644)
+	WriteCache(cacheName, []byte(time.Now().Format(time.RFC3339)))
 }

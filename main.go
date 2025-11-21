@@ -24,21 +24,30 @@ func main() {
 			pkgName := cmd.Args().First()
 			// prompt
 			showLoadingPrompt(fmt.Sprintf("What the heck is \"%s\"", pkgName))
-			// search, tidy up, and print
-			fmlChan := make(chan *FormulaInfo)
-			caskChan := make(chan *CaskInfo)
-			rvsChan := make(chan []string)
-			go func() {
-				formula, cask := GetBrewInfo(pkgName)
-				fmlChan <- formula
-				caskChan <- cask
-			}()
-			go func() {
-				rvsChan <- GetBrewUses(pkgName)
-			}()
-			stat := NewStatistics(<-fmlChan, <-caskChan, pkgName,<-rvsChan)
+			// try reading from cache
+			var stat *statistics
+			if stat = NewStatisticsFromCache(pkgName); stat == nil {
+				fmt.Println("cache not hit")
+				// cache not hit, then search
+				fmlChan := make(chan *FormulaInfo)
+				caskChan := make(chan *CaskInfo)
+				rvsChan := make(chan []string)
+				// start 2 goroutines, fetching formula/cask info and uses
+				go func() {
+					formula, cask := GetBrewInfo(pkgName)
+					fmlChan <- formula
+					caskChan <- cask
+				}()
+				go func() {
+					rvsChan <- GetBrewUses(pkgName)
+				}()
+				stat = NewStatistics(<-fmlChan, <-caskChan, pkgName,<-rvsChan)
+				stat.Cache()
+			}
+			// print
 			hideLoadingPrompt()
 			stat.Print()
+
 			return nil
 		},
 	}
