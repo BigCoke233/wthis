@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"syscall"
 	"time"
+	"fmt"
 )
 
 type statistics struct {
@@ -72,4 +73,16 @@ func NewStatistics(formula *FormulaInfo, cask *CaskInfo, pkgName string) (*stati
 	statObject.LastAccessTime = atime
 
 	return &statObject
+}
+
+func (s *statistics) Print() {
+	if s == nil {
+		fmt.Println("Package not found.")
+		return
+	}
+
+	PrintHeader(s)
+	PrintUserInteractionSummary(s)
+	PrintMetadata(s)
+	fmt.Println()
 }

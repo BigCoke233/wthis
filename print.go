@@ -8,29 +8,14 @@ import (
 	"github.com/hako/durafmt"
 )
 
-// === Print Entry Point === //
-
-func PrintInfo(data *statistics) {
-	if data == nil {
-		fmt.Println("Package not found.")
-		return
-	}
-
-	printHeader(data)
-	printUserInteractionSummary(data)
-	printMetadata(data)
-
-	fmt.Println()
-}
-
 // === Main Sections === //
 
-func printHeader(data *statistics) {
+func PrintHeader(data *statistics) {
 	printTypeNameAndDesc(data.Type, data.Name, data.Desc)
 	fmt.Println()
 }
 
-func printUserInteractionSummary(data *statistics) {
+func PrintUserInteractionSummary(data *statistics) {
 	a := printInstallDesc(
 		data.Type == "formula",
 		data.InstalledAsDependency,
@@ -47,7 +32,7 @@ func printUserInteractionSummary(data *statistics) {
 	}
 }
 
-func printMetadata(data *statistics) {
+func PrintMetadata(data *statistics) {
 	printVersionInfo(
 		data.InstalledVersion,
 		data.Outdated)

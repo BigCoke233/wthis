@@ -28,7 +28,7 @@ func main() {
          	formula, cask := GetBrewInfo(pkgName)
           	stat := NewStatistics(formula, cask, pkgName)
           	hideLoadingPrompt()
-          	PrintInfo(stat)
+          	stat.Print()
             return nil
         },
     }
