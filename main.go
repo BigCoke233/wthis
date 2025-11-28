@@ -5,12 +5,16 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"slices"
+	"sort"
 
 	"github.com/fatih/color"
 	"github.com/urfave/cli/v3"
 )
 
+// flags
 var NoCache, DoClearCache bool
+var ListAscend, ListDescend, ListNoDep bool
 
 func main() {
 	EnsureBrewAvailable()
@@ -38,24 +42,72 @@ func main() {
 		},
 		Commands: []*cli.Command{
 			{
-		       Name:    "list",
-		       Aliases: []string{"l", "ls"},
-		       Usage:   "Better brew list.",
+		      	Name:    "list",
+				Aliases: []string{"l", "ls"},
+		   		Usage:   "Better brew list.",
+				Flags: []cli.Flag{
+					&cli.BoolFlag{
+						Name:        "ascending",
+						Aliases:     []string{"a"},
+						Usage:       "Sort list ascendingly, based on dependency count.",
+						Value:       false,
+						Destination: &ListAscend,
+					},
+					&cli.BoolFlag{
+						Name:        "descending",
+						Aliases:     []string{"d"},
+						Usage:       "Sort list descendingly, based on dependency count.",
+						Value:       false,
+						Destination: &ListDescend,
+					},
+					&cli.BoolFlag{
+						Name:        "no-dependency",
+						Aliases:     []string{"n", "nd"},
+						Usage:       "Only show packages installed on request, with no dependency list.",
+						Value:       false,
+						Destination: &ListNoDep,
+					},
+				},
 		       Action: func(ctx context.Context, cmd *cli.Command) error {
 					depmap := GetBrewDeps()
 					list := GetBrewList()
 
-					for _, pkg := range list {
+					// filter and get essential items
+					var keys = []string{}
+					for k := range depmap {
+						if !slices.Contains(list, k) {
+							delete(depmap, k)
+						} else {
+							keys = append(keys, k)
+						}
+					}
+
+					// sort based on dependency count
+					if ListAscend {
+						sort.Slice(keys, func(i, j int) bool {
+							return len(depmap[keys[i]]) > len(depmap[keys[j]])
+						})
+					} else if ListDescend {
+						sort.Slice(keys, func(i, j int) bool {
+							return len(depmap[keys[i]]) < len(depmap[keys[j]])
+						})
+					} else {
+						sort.Strings(keys)
+					}
+
+					//
+					for _, pkg := range keys {
 						deps := depmap[pkg]
 						count := len(deps)
 
 						color.New(color.FgBlue).Printf("%s", pkg)
 						if count > 1 {
-							fmt.Printf(" (%d dependencies): \n", count)
+							fmt.Printf(" (%d dependencies)\n", count)
 						} else {
-							fmt.Printf(" (%d dependency): \n", count)
+							fmt.Printf(" (%d dependency)\n", count)
 						}
 
+						if ListNoDep { continue }
 						for _, dep := range deps {
 							fmt.Printf("  ► %s\n", dep)
 						}
