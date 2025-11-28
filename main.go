@@ -3,10 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/fatih/color"
-	"github.com/urfave/cli/v3"
 	"log"
 	"os"
+
+	"github.com/fatih/color"
+	"github.com/urfave/cli/v3"
 )
 
 var NoCache, DoClearCache bool
@@ -51,7 +52,24 @@ func main() {
 		       Aliases: []string{"l", "ls"},
 		       Usage:   "Better brew list.",
 		       Action: func(ctx context.Context, cmd *cli.Command) error {
-					// TODO
+					depmap := GetBrewDeps()
+					list := GetBrewList()
+
+					for _, pkg := range list {
+						deps := depmap[pkg]
+						count := len(deps)
+
+						color.New(color.FgBlue).Printf("%s", pkg)
+						if count > 1 {
+							fmt.Printf(" (%d dependencies): \n", count)
+						} else {
+							fmt.Printf(" (%d dependency): \n", count)
+						}
+
+						for _, dep := range deps {
+							fmt.Printf("  ► %s\n", dep)
+						}
+					}
 					return nil
 		       },
 		   },

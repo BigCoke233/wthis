@@ -2,9 +2,11 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/fatih/color"
 	"os/exec"
 	"strings"
+	"time"
+
+	"github.com/fatih/color"
 )
 
 type FormulaInfo struct {
@@ -33,6 +35,9 @@ type CaskInfo struct {
 	Outdated    bool     `json:"outdated"`
 	Version     string   `json:"version"`
 }
+
+const brewDepCacheTTL = 3*24*time.Hour
+const brewListCacheTTL = 24*time.Hour
 
 // GetInfo fetches package info for both formulae and casks.
 // It returns one of the two structs depending on the package type.
@@ -75,4 +80,98 @@ func GetBrewUses(pkg string) []string {
 	}
 
 	return lines
+}
+
+func GetBrewList() []string {
+	const cachepath = "brewlist.json"
+	var list []string
+
+	// Try reading from cache
+	list_raw, cache_hit := ReadCache(cachepath, brewListCacheTTL)
+	if cache_hit {
+		err := json.Unmarshal(list_raw, &list)
+		if err != nil {
+			color.Red("❌ Error unmarshaling cache of brew list")
+			return []string{}
+		}
+	} else {
+		out, err := exec.
+			Command("brew", "list", "--installed-on-request").
+			Output()
+		if err != nil {
+			color.Red("❌ Error fetching brew list.")
+			return []string{}
+		}
+
+		list = strings.Split(strings.TrimSpace(string(out)), "\n")
+	}
+
+	// Write cache
+	defer func() {
+		brewlist_json, err := json.Marshal(list)
+		if err != nil {
+			color.Red("❌ Error marshaling brew list data to write cache.")
+		}
+		WriteCache(cachepath, brewlist_json)
+	}()
+
+	return list
+}
+
+func GetBrewDeps() map[string][]string {
+	depmap := map[string][]string{}
+
+	// Try reading from cache
+	const cachepath = "depmap.json"
+	cache_data, cache_hit := ReadCache(cachepath, brewDepCacheTTL)
+
+	if cache_hit {
+		// if cache hit, decode
+		err := json.Unmarshal(cache_data, &depmap)
+		if err != nil {
+			color.Red("❌ Error unmarshaling cache of dependency map.")
+		}
+	} else {
+		// if not, try fetch
+		out, err := exec.
+			Command("brew", "deps", "--installed", "--direct").
+			Output()
+		if err != nil {
+			color.Red("❌ Error fetching brew dependencies.")
+			return map[string][]string{}
+		}
+
+		// parse raw data
+		// a list of items like "package: depA depB depC..."
+		dep_strs := strings.FieldsFunc(string(out), func(r rune) bool {
+		    return r == '\n' || r == '\r'
+		})
+
+		for _, dep_str := range dep_strs {
+			parts := strings.Split(dep_str, ":")
+			pkg := parts[0]
+			pkg_deps := parts[1]
+
+			deps := strings.Split(pkg_deps, " ")
+			filtered := []string{}
+			// remove empty elements in slice
+			for _, dep := range deps {
+				if dep != "" {
+					filtered = append(filtered, dep)
+				}
+			}
+			depmap[pkg] = filtered
+		}
+	}
+
+	// Writing cache
+	defer func() {
+		depmap_json, err := json.Marshal(depmap)
+		if err != nil {
+			color.Red("Error marshaling JSON when writing cache:", err)
+		}
+		WriteCache("depmap.json", depmap_json)
+	}()
+
+	return depmap
 }
