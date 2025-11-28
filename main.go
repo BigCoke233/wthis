@@ -26,30 +26,46 @@ func main() {
 				Value:       false,
 				Destination: &NoCache,
 			},
-			&cli.BoolFlag{
-				Name:        "clear-cache",
-				Aliases:     []string{"cc"},
-				Usage:       "Clear cache",
-				Value:       false,
-				Destination: &DoClearCache,
-			},
 		},
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if DoClearCache {
-				ClearCache()
-				fmt.Println("Cache cleared.")
-				os.Exit(0)
-			}
+		// Action: func(ctx context.Context, cmd *cli.Command) error {
 
-			// check args
-			if cmd.Args().Len() == 0 {
-				printErrorAndExit("Please provide a formulae/cask name.")
-			}
 
-			// do the job
-			searchAndPrint(cmd.Args().First())
+		// 	return nil
+		// },
+		Commands: []*cli.Command{
+			{
+		       Name:    "info",
+		       Aliases: []string{"i"},
+		       Usage:   "Show info and reverse dependencies of a formula/cask.",
+		       Action: func(ctx context.Context, cmd *cli.Command) error {
+					if cmd.Args().Len() == 0 {
+						printErrorAndExit("Please provide a formulae/cask name.")
+					}
+					searchAndPrint(cmd.Args().First())
 
-			return nil
+					return nil
+		       },
+		   },
+			{
+		       Name:    "list",
+		       Aliases: []string{"l", "ls"},
+		       Usage:   "Better brew list.",
+		       Action: func(ctx context.Context, cmd *cli.Command) error {
+					// TODO
+					return nil
+		       },
+		   },
+	        {
+	            Name:    "clean",
+	            Aliases: []string{"c", "cache"},
+	            Usage:   "Delete all cache files.",
+	            Action: func(ctx context.Context, cmd *cli.Command) error {
+					// TODO error handling here
+              		ClearCache()
+					fmt.Println("Cache cleared.")
+					return nil
+	            },
+	        },
 		},
 	}
 
