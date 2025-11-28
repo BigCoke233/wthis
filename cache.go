@@ -14,7 +14,7 @@ func CachePath(rel string) string {
 	return path
 }
 
-func ReadCache(relPath string, ttl time.Duration) ([]byte, bool) {
+func ReadCache(relPath string, ttl time.Duration) (data []byte, cacheHit bool) {
 	path := CachePath(relPath)
 
 	info, err := os.Stat(path)
