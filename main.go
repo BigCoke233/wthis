@@ -28,25 +28,15 @@ func main() {
 				Destination: &NoCache,
 			},
 		},
-		// Action: func(ctx context.Context, cmd *cli.Command) error {
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			if cmd.Args().Len() == 0 {
+				printErrorAndExit("Please provide a formulae/cask name.")
+			}
+			searchAndPrint(cmd.Args().First())
 
-
-		// 	return nil
-		// },
+			return nil
+		},
 		Commands: []*cli.Command{
-			{
-		       Name:    "info",
-		       Aliases: []string{"i"},
-		       Usage:   "Show info and reverse dependencies of a formula/cask.",
-		       Action: func(ctx context.Context, cmd *cli.Command) error {
-					if cmd.Args().Len() == 0 {
-						printErrorAndExit("Please provide a formulae/cask name.")
-					}
-					searchAndPrint(cmd.Args().First())
-
-					return nil
-		       },
-		   },
 			{
 		       Name:    "list",
 		       Aliases: []string{"l", "ls"},
