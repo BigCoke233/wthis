@@ -33,10 +33,28 @@ func main() {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
+			if DoClearCache {
+				ClearCache()
+				fmt.Println("Cache cleared.")
+				os.Exit(0)
+			}
+
+			// handle arguments
 			if cmd.Args().Len() == 0 {
 				printErrorAndExit("Please provide a formulae/cask name.")
 			}
-			searchAndPrint(cmd.Args().First())
+			pkgName := cmd.Args().First()
+
+			// search and print
+			showLoadingPrompt(fmt.Sprintf("What the heck is \"%s\"", pkgName))
+			stat := fetchToCreateStatistics(pkgName)
+			hideLoadingPrompt()
+			stat.Print()
+
+			// cache
+			if !NoCache {
+				stat.Cache()
+			}
 
 			return nil
 		},
@@ -135,13 +153,14 @@ func main() {
 	}
 }
 
-func searchAndPrint(pkgName string) {
-	// prompt
-	showLoadingPrompt(fmt.Sprintf("What the heck is \"%s\"", pkgName))
+func fetchToCreateStatistics(pkgName string) *statistics {
 	// try reading from cache
-	var stat *statistics = NewStatisticsFromCache(pkgName)
+	var stat *statistics
+	if !NoCache {
+		stat = NewStatisticsFromCache(pkgName)
+	}
+	// if cache not hit or explicitly requested no cache
 	if NoCache || stat == nil {
-		// cache not hit, then search
 		fmlChan := make(chan *FormulaInfo)
 		caskChan := make(chan *CaskInfo)
 		rvsChan := make(chan []string)
@@ -154,15 +173,10 @@ func searchAndPrint(pkgName string) {
 		go func() {
 			rvsChan <- GetBrewUses(pkgName)
 		}()
+		// create fine-grained data out of raw
 		stat = NewStatistics(<-fmlChan, <-caskChan, pkgName, <-rvsChan)
-		// handle caching
-		if !NoCache {
-			stat.Cache()
-		}
 	}
-	// print
-	hideLoadingPrompt()
-	stat.Print()
+	return stat
 }
 
 func printErrorAndExit(msg string) {
