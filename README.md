@@ -1,3 +1,6 @@
+> [!important]
+> This project is moved to [Codeberg](https://codeberg.org/eltrac/wthis). GitHub repository was archived on March 25, 2026.
+
 ![](screenshot.png)
 
 # wthis
